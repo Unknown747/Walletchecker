@@ -1,0 +1,12 @@
+https://gnosis-chiado.publicnode.com/
+https://gnosis.rpc.subquery.network/public
+https://gnosis.api.pocket.network/
+https://gnosis-public.nodies.app
+https://rpc.gnosischain.com/
+https://rpc.gnosis.gateway.fm/
+https://gnosis.drpc.org/
+https://gnosis.publicnode.com/
+https://1rpc.io/gnosis
+https://rpc.chiadochain.net/
+https://rpc.chiado.gnosis.gateway.fm/
+https://gnosis-chiado.publicnode.com/

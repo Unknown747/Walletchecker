@@ -1,0 +1,6 @@
+https://1rpc.io/sui
+https://sui.api.pocket.network/
+https://sui.api.onfinality.io/public
+https://sui-mainnet.nodeinfra.com
+https://mainnet-rpc.sui.chainbase.online/
+https://sui-rpc.publicnode.com/

@@ -1,0 +1,14 @@
+https://bsc-testnet.publicnode.com/
+https://data-seed-prebsc-1-s1.binance.org:8545/
+https://1rpc.io/bnb
+https://bsc.publicnode.com/
+https://bsc-dataseed.binance.org/
+https://bsc.rpc.blxrbdn.com/
+https://bsc.rpc.blxrbdn.com/
+https://public-bsc-mainnet.fastnode.io/
+https://bsc.llamarpc.com
+https://binance-smart-chain-public.nodies.app
+https://public-bsc.nownodes.io/
+https://bsc.api.pocket.network/
+https://bnb.rpc.subquery.network/public
+https://binance.rpc.thirdweb.com/

@@ -1,0 +1,9 @@
+https://avalanche.rpc.thirdweb.com/
+https://avalanche.gateway.tenderly.co/
+https://avalanche-rpc.polkachu.com/ext/bc/C/rpc
+https://avax.api.pocket.network/
+https://avalanche.drpc.org/
+https://api.avax.network/ext/bc/C/rpc
+https://avalanche-evm.publicnode.com/
+https://1rpc.io/avax/c
+https://avalanche-fuji.gateway.tenderly.co/

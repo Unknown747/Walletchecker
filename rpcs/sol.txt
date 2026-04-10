@@ -1,0 +1,6 @@
+https://solana-rpc.publicnode.com
+https://solana.rpc.subquery.network/public
+https://public.rpc.solanavibestation.com/
+https://solana.api.pocket.network/
+https://solana-rpc.publicnode.com/
+https://api.devnet.solana.com

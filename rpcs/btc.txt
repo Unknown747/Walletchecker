@@ -1,0 +1,4 @@
+https://blockstream.info/api/address/ | REST
+https://mempool.space/api/address/ | REST
+https://bitcoin-rpc.publicnode.com/ | RPC
+https://public-btc.nownodes.io/ | RPC
