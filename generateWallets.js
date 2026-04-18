@@ -8,10 +8,6 @@ const { Keypair } = require("@solana/web3.js");
 
 const ECPair = ECPairFactory(ecc);
 
-function getBs58Encoder(bs58Module) {
-  return bs58Module.default || bs58Module;
-}
-
 function parseCount(args = process.argv.slice(2)) {
   const countArg = args.find((arg) => arg.startsWith("--count="));
   const rawCount = countArg ? countArg.split("=")[1] : args.find((arg) => /^\d+$/.test(arg));
@@ -25,39 +21,30 @@ function parseCount(args = process.argv.slice(2)) {
 }
 
 function ensureDirectories() {
-  for (const directory of ["data", "output", "wallets"]) {
-    fs.mkdirSync(directory, { recursive: true });
+  for (const dir of ["data", "output"]) {
+    fs.mkdirSync(dir, { recursive: true });
   }
 }
 
-function clearOldScannerFiles() {
+function clearInputFiles() {
   const files = [
     "data/evm_input.txt",
     "data/btc_input.txt",
     "data/sol_input.txt",
-    "data/sui_input.txt",
-    "output/active.txt",
-    "output/inactive_evm.txt",
-    "output/inactive_btc.txt",
-    "output/inactive_sol.txt",
-    "output/inactive_sui.txt",
-    "output/results.csv"
+    "data/sui_input.txt"
   ];
-
   for (const file of files) {
     fs.writeFileSync(file, "");
   }
 }
 
 function writeLines(filePath, lines) {
-  fs.writeFileSync(filePath, `${lines.join("\n")}${lines.length ? "\n" : ""}`);
+  fs.writeFileSync(filePath, lines.length ? `${lines.join("\n")}\n` : "");
 }
 
 function generateEvmWallet() {
   const wallet = Wallet.createRandom();
-
   return {
-    chain: "EVM",
     address: wallet.address,
     privateKey: wallet.privateKey,
     mnemonic: wallet.mnemonic?.phrase || null
@@ -70,19 +57,12 @@ function generateBtcWallet() {
     pubkey: Buffer.from(keyPair.publicKey),
     network: bitcoin.networks.bitcoin
   });
-
-  return {
-    chain: "BTC",
-    address,
-    privateKeyWif: keyPair.toWIF()
-  };
+  return { address, privateKeyWif: keyPair.toWIF() };
 }
 
 function generateSolWallet(bs58) {
   const keyPair = Keypair.generate();
-
   return {
-    chain: "SOL",
     address: keyPair.publicKey.toBase58(),
     secretKey: bs58.encode(keyPair.secretKey)
   };
@@ -91,9 +71,7 @@ function generateSolWallet(bs58) {
 async function generateSuiWallet() {
   const { Ed25519Keypair } = await import("@mysten/sui/keypairs/ed25519");
   const keyPair = new Ed25519Keypair();
-
   return {
-    chain: "SUI",
     address: keyPair.getPublicKey().toSuiAddress(),
     secretKey: keyPair.getSecretKey()
   };
@@ -101,65 +79,40 @@ async function generateSuiWallet() {
 
 async function generateWallets(options = {}) {
   const count = options.count || parseCount(options.args);
-  const bs58 = getBs58Encoder(await import("bs58"));
+  const bs58 = (await import("bs58")).default || (await import("bs58"));
 
   ensureDirectories();
-  clearOldScannerFiles();
+  clearInputFiles();
 
   const evmWallets = [];
   const btcWallets = [];
   const solWallets = [];
   const suiWallets = [];
 
-  for (let index = 0; index < count; index += 1) {
+  for (let i = 0; i < count; i += 1) {
     evmWallets.push(generateEvmWallet());
     btcWallets.push(generateBtcWallet());
     solWallets.push(generateSolWallet(bs58));
     suiWallets.push(await generateSuiWallet());
   }
 
-  writeLines("data/evm_input.txt", evmWallets.map((wallet) => wallet.address));
-  writeLines("data/btc_input.txt", btcWallets.map((wallet) => wallet.address));
-  writeLines("data/sol_input.txt", solWallets.map((wallet) => wallet.address));
-  writeLines("data/sui_input.txt", suiWallets.map((wallet) => wallet.address));
+  writeLines("data/evm_input.txt", evmWallets.map((w) => w.address));
+  writeLines("data/btc_input.txt", btcWallets.map((w) => w.address));
+  writeLines("data/sol_input.txt", solWallets.map((w) => w.address));
+  writeLines("data/sui_input.txt", suiWallets.map((w) => w.address));
 
-  const generatedAt = new Date().toISOString();
-  const keyFile = path.join("wallets", `generated-wallets-${generatedAt.replace(/[:.]/g, "-")}.json`);
-  const latestKeyFile = path.join("wallets", "latest-generated-wallets.json");
-  const payload = {
-    generatedAt,
-    count,
-    warning: "Simpan file ini dengan aman. Private key/secret key memberi akses penuh ke wallet.",
-    wallets: {
-      evm: evmWallets,
-      btc: btcWallets,
-      sol: solWallets,
-      sui: suiWallets
-    }
-  };
-
-  fs.writeFileSync(keyFile, JSON.stringify(payload, null, 2));
-  fs.writeFileSync(latestKeyFile, JSON.stringify(payload, null, 2));
-
-  if (!options.silent) {
-    console.log(`Generated ${count} wallet untuk EVM, BTC, SOL, dan SUI.`);
-    console.log("Address scanner diperbarui di folder data/.");
-    console.log(`Private key/secret tersimpan di ${keyFile}`);
-  }
-
-  return {
-    count,
-    keyFile,
-    latestKeyFile,
-    generatedAt
-  };
+  return { count, evmWallets, btcWallets, solWallets, suiWallets };
 }
 
 if (require.main === module) {
-  generateWallets().catch((error) => {
-    console.error(error.message || error);
-    process.exit(1);
-  });
+  generateWallets()
+    .then(({ count }) => {
+      console.log(`Generated ${count} wallets per chain. Addresses saved to data/.`);
+    })
+    .catch((error) => {
+      console.error(error.message || error);
+      process.exit(1);
+    });
 }
 
 module.exports = { generateWallets, parseCount };

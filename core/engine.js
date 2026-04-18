@@ -3,13 +3,13 @@ const path = require("path");
 const { RPCManager } = require("./rpcManager");
 
 class Engine {
-  constructor(CheckerClass, rpcFile, inputFile, activeFile, inactiveFile, chain) {
+  constructor(CheckerClass, rpcFile, inputFile, activeFile, chain, walletMap = new Map()) {
     this.CheckerClass = CheckerClass;
     this.rpcFile = rpcFile;
     this.inputFile = inputFile;
     this.activeFile = activeFile;
-    this.inactiveFile = inactiveFile;
     this.chain = chain;
+    this.walletMap = walletMap;
 
     this.addresses = this.loadAddresses();
     this.processed = 0;
@@ -41,20 +41,18 @@ class Engine {
 
       for (const rawLine of lines) {
         const line = rawLine.trim();
-        if (!line) {
-          continue;
-        }
+        if (!line) continue;
 
         if (line.includes("|")) {
           const [leftRaw, rightRaw] = line.split("|", 2);
           const left = leftRaw.trim();
           const right = rightRaw.trim();
 
-          if (left.startsWith("http://") || left.startsWith("https://")) {
-            entries.push({ mode: right, url: left });
-          } else {
-            entries.push({ mode: left, url: right });
-          }
+          entries.push(
+            left.startsWith("http://") || left.startsWith("https://")
+              ? { mode: right, url: left }
+              : { mode: left, url: right }
+          );
         } else {
           entries.push({ mode: "RPC", url: line });
         }
@@ -66,6 +64,22 @@ class Engine {
     return new RPCManager(entries);
   }
 
+  saveActiveKey(address) {
+    const walletData = this.walletMap.get(address);
+    if (!walletData) return;
+
+    const record = JSON.stringify({
+      chain: this.chain,
+      address,
+      foundAt: new Date().toISOString(),
+      ...walletData
+    });
+
+    const keysFile = path.join(path.dirname(this.activeFile), "active_keys.txt");
+    fs.mkdirSync(path.dirname(keysFile), { recursive: true });
+    fs.appendFileSync(keysFile, `${record}\n`);
+  }
+
   async worker(address) {
     try {
       const result = await this.checker.check(address);
@@ -75,6 +89,7 @@ class Engine {
         this.active += 1;
         fs.mkdirSync(path.dirname(this.activeFile), { recursive: true });
         fs.appendFileSync(this.activeFile, `${this.chain},${address}\n`);
+        this.saveActiveKey(address);
       } else {
         this.inactive += 1;
       }

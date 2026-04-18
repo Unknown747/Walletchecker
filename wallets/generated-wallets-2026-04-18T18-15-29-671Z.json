@@ -1,0 +1,225 @@
+{
+  "generatedAt": "2026-04-18T18:15:29.671Z",
+  "count": 10,
+  "warning": "Simpan file ini dengan aman. Private key/secret key memberi akses penuh ke wallet.",
+  "wallets": {
+    "evm": [
+      {
+        "chain": "EVM",
+        "address": "0x18B8170309348142EEf6Be7a8D336b6BC015cb0e",
+        "privateKey": "0x339920e9844d0c1bea28c65bf45617a8195c37f8c3f308e8e79e4e576fac1fbb",
+        "mnemonic": "better agree pulse always phrase access rabbit giraffe bomb cost pulse bridge"
+      },
+      {
+        "chain": "EVM",
+        "address": "0xd69eFE61fA99164107A1254cc3602B7124a46470",
+        "privateKey": "0x3c9a5ec79c887339bb6d9d781f278f134735015d1ba9580bdc5dad2e531ac879",
+        "mnemonic": "adapt busy project gossip palm undo churn ten slim unique fine silk"
+      },
+      {
+        "chain": "EVM",
+        "address": "0x60edA1e90b7FEe99ccFFFEd294498c42e9Da3087",
+        "privateKey": "0x0bbe61489adcbab55260edfb35793a5654d3690ecef0a2e3901289de8c197803",
+        "mnemonic": "bridge night clock pact salute nephew atom crunch swallow gallery world innocent"
+      },
+      {
+        "chain": "EVM",
+        "address": "0x2F8DC32285fB3d2D7873F704c978bF51e1113eec",
+        "privateKey": "0xdb8fa31b71676e58e32553cb4453120dfe62c359057e8762900bc50988779272",
+        "mnemonic": "left crop illness way token city ramp mandate glow exhaust alcohol secret"
+      },
+      {
+        "chain": "EVM",
+        "address": "0x0a7863cF345072CeF2a96d0f462d54bfc50D6483",
+        "privateKey": "0x6f45e3cf2bdb71e15302f846caf506ddc60b6506e2041a750975239a1a4d90ce",
+        "mnemonic": "label cinnamon menu bitter cause name foam toddler pyramid bonus gather soul"
+      },
+      {
+        "chain": "EVM",
+        "address": "0xb42d76DcFc5707309b16fBea5F0690676A2261f4",
+        "privateKey": "0x18340c9c40a54b0ed207b362e3fdd6fda2d7e75e36028a0bfe5199446d8c671d",
+        "mnemonic": "report sadness grant purpose moment camp narrow wasp apology exhaust tourist put"
+      },
+      {
+        "chain": "EVM",
+        "address": "0xB6d4aE11a1B541Ee6035AA411DEcB9E0556d9F41",
+        "privateKey": "0xebbef53f65d5ff73fc36b1f13d102a7288b52b3c9ab4e4deda68d3920eb26fb0",
+        "mnemonic": "such wink unit lesson high gas cactus job valid brush there hill"
+      },
+      {
+        "chain": "EVM",
+        "address": "0xE21e647e816f055793e82028eD4Fc13132684148",
+        "privateKey": "0x666f10a8021fd82c50a531c1a86759813c413f35b8901b6c39316711d9dbbeb2",
+        "mnemonic": "inquiry situate omit census minimum theme point ocean fiscal yard valid cereal"
+      },
+      {
+        "chain": "EVM",
+        "address": "0x633dcb68E458611e7bd6b3E7c5eae41a7A887b1f",
+        "privateKey": "0x6c0ed9842bba31f509d4276c148f2697ecd04067daebee7318288dcf6cf96651",
+        "mnemonic": "near street unit north fragile add road gaze blood festival notice enroll"
+      },
+      {
+        "chain": "EVM",
+        "address": "0xBF66116204788dfEEb659074408112d59dcd641C",
+        "privateKey": "0x7ba5d77c3befcd0d54cd96ccbb2f86134495841f4b8c92a7b01acabddc3354e9",
+        "mnemonic": "margin world stairs crater canoe more surround coconut step parrot scare orange"
+      }
+    ],
+    "btc": [
+      {
+        "chain": "BTC",
+        "address": "bc1qmmes8yedx7pup20x2v49cse9m0t0wj4040tx64",
+        "privateKeyWif": "L3mSwVSFqsS9pgcjxmtCGVW5LfZE22RxFSnhBjsKGWPgt7cy9NB2"
+      },
+      {
+        "chain": "BTC",
+        "address": "bc1qlkmw84dg89dpe33hjk0g32vuhmzcq0kp75xu5d",
+        "privateKeyWif": "Kwj9W4XoPPHFWjmmL51t7Zx539JvrbBntfX1aRuQyPnuTEarJTSL"
+      },
+      {
+        "chain": "BTC",
+        "address": "bc1qvur8v6ncc4z6zsuj07dg3nu3jf79rapjj0ytsy",
+        "privateKeyWif": "L2xsQZe9jg4JcdncDCfaFixxS4bB7h12DL4ipUmJeEzuRvWoWPzj"
+      },
+      {
+        "chain": "BTC",
+        "address": "bc1q8cmqal8vkg9js0e4fj6s2msm990fkkete3g2k0",
+        "privateKeyWif": "KwRB6uvfoVrv3tt5WzPbSg7p9Y8YHG2spHHsP2Q7M8Nipq65rWek"
+      },
+      {
+        "chain": "BTC",
+        "address": "bc1q4pq69y9458tqenqke39faw5qzxh7hr0h2a0y63",
+        "privateKeyWif": "KydhNcRUvLwXXnyvRdAa9ndZzEedhu3Xr3hokuAVHpycdF9zGgWz"
+      },
+      {
+        "chain": "BTC",
+        "address": "bc1q8fjls5ej0ql44575gez9x6hjncvd5pjnhrkx2z",
+        "privateKeyWif": "L14A29PRgenYjfw91gk9QmfxNjd9jSumKsg4ib8MYx5DBu6zU9M9"
+      },
+      {
+        "chain": "BTC",
+        "address": "bc1qn83vkajp5k257nmgmxxzw0w2v7w573de2hj4hl",
+        "privateKeyWif": "L5AUAF7sHJ9tFbEdzyFJGrzgG19GJ5ns4fhW7SURsvYJeLywaSVg"
+      },
+      {
+        "chain": "BTC",
+        "address": "bc1qpdft9s48yc4vvkw9cw9eqgtat2j0p0xrmu7pnq",
+        "privateKeyWif": "KxCn1TqfdCkWRVsR3yYaWp4RXai6TKDins369J1xdD7G2KW8SBEV"
+      },
+      {
+        "chain": "BTC",
+        "address": "bc1q6wp0vqfa3h9n4uz898azff68n0ykrs0q37zm90",
+        "privateKeyWif": "L2QmD7yKiSbiNdkdYm4d3jNhEgzGB7RaYjwnCE53cint7qxusz7N"
+      },
+      {
+        "chain": "BTC",
+        "address": "bc1qhey4zgquyd4557p7w2qlcr6dfwd9dwp2upfv34",
+        "privateKeyWif": "L3s5vCmyAQ6MyMoxbCiq5LRL9wVxJKcHGrMhZS4FmrK8svAubs6b"
+      }
+    ],
+    "sol": [
+      {
+        "chain": "SOL",
+        "address": "5HLWkbSeBrgdoN5w5Q9stvujBrxpiKxvxeEKdApwSKaK",
+        "secretKey": "5f4nvUMZaETMFtSBKUkNSKkFCpzXhiweBnKtVKdxhfZKSacKejYYrPCKbtBDCF3toK8EE7JVTq55DkpBbNvWGBgw"
+      },
+      {
+        "chain": "SOL",
+        "address": "DUFs56bLxa9CaDboHh4AxgZCteNU5Qyhf5T8ttGCQgzg",
+        "secretKey": "2mMd3NwpgtrnL1rUEPpuaQcxbfNX8KvJrrwnDBv9TmEPDDqsK2aNBMqkmERXNUyhWXF491whWp8U67r61j6h3VvL"
+      },
+      {
+        "chain": "SOL",
+        "address": "ExLy2W8Pb4vWypk12wFL7YaKdTUgw75YXUgXvLBvkBvR",
+        "secretKey": "3DgrMfZ7Umk14BMoW2CioXtZRCojUQbHEaGFxkFj9Rnf8bJf7K93DUZF2ycMw4X5eR2w8mXdfUFCRTAW46RVtnw3"
+      },
+      {
+        "chain": "SOL",
+        "address": "31eJEwxnYdrAUkeBaFwQBey49chyJayWEpNWmBQvMj4Y",
+        "secretKey": "3GiP93LKmodSLy13eEm8KQVWubgtfLHqNv5ii9iY3aSP9ALyN2S1qZJhhLNNXGH8rQr7Kez15VNNQSKzMgEL5fzL"
+      },
+      {
+        "chain": "SOL",
+        "address": "7uaeGqxG2YusQd8kmwY18JRyihCStJUgeMc8Mi7ArVe7",
+        "secretKey": "EvbwycvHhBQptMgCPM7m5E1AhPWfXBTd7Ld2C3LSxvNf3HaJ8SAnmjddR1ngScm3GnPYMJK3QK8udsS2MKhi4Lo"
+      },
+      {
+        "chain": "SOL",
+        "address": "Gky8sesdsrYX4r3HSQxPRpr8AdR6PaENNe9CWDope9eu",
+        "secretKey": "4juCAB22v9TKkFEKaTjFR1CiNq5cfsunPB8P7NjCPjP42J55pCrXJ2aMuiUiikn6C5mNEqL9wjEsvNTK8kUVSkJ1"
+      },
+      {
+        "chain": "SOL",
+        "address": "HAiLE9NPxCL4n4D5n5vcvPA55rp9p9re8BMg6iikpbhQ",
+        "secretKey": "ETMq6tnmDL4q5VJHcGkw2ZxKxTfoSwQJ8Cuq7mHgr5KBh3EJScesPrgU4bmtNAeo62bPR1fZ7kvo5EdLxDmwtYv"
+      },
+      {
+        "chain": "SOL",
+        "address": "GFgYGCYvJvRKdCL7kfaRdHKqkePQ2G9G2NSzodVi9pEv",
+        "secretKey": "39NSN1Ec4h7jXkncGQHzn7Yh5QnMkw5ybK6YeNuPdgXehXXkNKADtyxpNijf9v1DUciQnNQMnocEisNhj4gxkShx"
+      },
+      {
+        "chain": "SOL",
+        "address": "5o2tKvmTYmgtjpribc4PZh5REYXaz5SRwy7H8NtDZaj5",
+        "secretKey": "5RpV537EbcYnckaFxbEpZfpdhwwNvZm2EVBBbADtpCCLsU6Wp7kSiYfo19k3bSBDCMKwS2tYBYj3K3bCaa3R5ZDu"
+      },
+      {
+        "chain": "SOL",
+        "address": "8SCN3BmTwWyDMq78qM96BBLNcWrUH64yiCZYv3ya92cb",
+        "secretKey": "3x4nuaxUQPdhx1Tifw7egXDZWjp1KihxkGyaosGkzYuwAdb11CZoSVj7Vs811haCAS8qHhhs7wd95MRuxvhNdL67"
+      }
+    ],
+    "sui": [
+      {
+        "chain": "SUI",
+        "address": "0xf5d946c8f76a7781311d622f5b9e460204a438c35204a93fbe9bde7ccea5da5f",
+        "secretKey": "suiprivkey1qp5wtandxw0y9rvzss6tleumh9y4dslmvtc969va3292t5f8pztlj2m58kc"
+      },
+      {
+        "chain": "SUI",
+        "address": "0x6867222377f0d05dc33716118fc4c69bbd471c1c7013833fb1fc69843d16805c",
+        "secretKey": "suiprivkey1qz6w7wlhzpnmcf96z4kcgec8nyaasg7whc5l7xfpvctnszlgnxkruacys4v"
+      },
+      {
+        "chain": "SUI",
+        "address": "0x4320df989f960a450c3976557f4ee685c37897e4653b9ba9557a46b1a436170d",
+        "secretKey": "suiprivkey1qzywsk9u2sagam2xnnkkmf35jy39njdxkr42k7vn43d9pa2f6vwwyy9vnpa"
+      },
+      {
+        "chain": "SUI",
+        "address": "0x8a89d29033fc17e49fdd834395cef36643d6cc8a267778ee4e1269da547d9920",
+        "secretKey": "suiprivkey1qqu6yp7rklm4genqllhq858f23hv9raffz7tvgwatdeaaref0sstjg7a4a6"
+      },
+      {
+        "chain": "SUI",
+        "address": "0xcc52efd027cdf0283082c7e70d8ca3c9c6eda7b0df47652b6122b85a25465a94",
+        "secretKey": "suiprivkey1qr4w0f566x2ewcjcpnch9dsfsmlxkl59fdrhtdnd4rl8hcd0a2majk8vlww"
+      },
+      {
+        "chain": "SUI",
+        "address": "0xf2759fc004d3bde0fcb8be68448d59b3e95883feb11d37ee37b9335477d833f3",
+        "secretKey": "suiprivkey1qppwv5xeydm7prz7fr5va7jjvqdf7ra5d5vr6gs6rcmjtkst5jd6kwcv2pj"
+      },
+      {
+        "chain": "SUI",
+        "address": "0xddf838f1b6ca6856202a973aeec986e8073eb698b300aaad16ad2f2ba3259bdc",
+        "secretKey": "suiprivkey1qp4whc0vd3kry6jkd0exr5p7vzvunmjkz4q7mw8q7799t6qvpfaggfwdxey"
+      },
+      {
+        "chain": "SUI",
+        "address": "0x180e6793905040925c0cdfbff7e530798d9a58a23ae22860edb293f7720de7bb",
+        "secretKey": "suiprivkey1qz9tlggh83vs987rapzqpuahkye0xn05w3yw6d0v7pgzzc4sf25azssmce6"
+      },
+      {
+        "chain": "SUI",
+        "address": "0x638d4065ed81a78114cb78b60452144d355d81e8966c5f0f47bb2d33b6e94cef",
+        "secretKey": "suiprivkey1qp9ffpazqtzt686vqezf0mytj96nfy4z474dfxtwekfwch7m9y52gmzlqua"
+      },
+      {
+        "chain": "SUI",
+        "address": "0xc32a9c09c1fb4a698f541e8908cbdceb0e36d2c104fb066509d25fed5fa4ede4",
+        "secretKey": "suiprivkey1qrekqqqgwdhnsg3crqwy472pr70ek0kpn0g4frzs99fv3vfzkjrqyw326mc"
+      }
+    ]
+  }
+}
