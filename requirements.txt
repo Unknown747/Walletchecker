@@ -1,6 +1,0 @@
-aiohttp==3.9.5
-certifi
-tqdm
-aiohttp==3.9.5
-certifi
-tqdm

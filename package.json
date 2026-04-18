@@ -1,0 +1,21 @@
+{
+  "name": "workspace",
+  "version": "1.0.0",
+  "description": "Multi-chain scanner (EVM + BTC + SOL + SUI)",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@mysten/sui": "^1.45.2",
+    "@solana/web3.js": "^1.98.4",
+    "bitcoinjs-lib": "^7.0.1",
+    "bs58": "^6.0.0",
+    "ecpair": "^3.0.1",
+    "ethers": "^6.16.0",
+    "tiny-secp256k1": "^2.2.4"
+  }
+}
