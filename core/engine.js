@@ -71,12 +71,10 @@ class Engine {
       const result = await this.checker.check(address);
       this.processed += 1;
 
-      const targetFile = result ? this.activeFile : this.inactiveFile;
-      fs.mkdirSync(path.dirname(targetFile), { recursive: true });
-      fs.appendFileSync(targetFile, `${address}\n`);
-
       if (result) {
         this.active += 1;
+        fs.mkdirSync(path.dirname(this.activeFile), { recursive: true });
+        fs.appendFileSync(this.activeFile, `${this.chain},${address}\n`);
       } else {
         this.inactive += 1;
       }

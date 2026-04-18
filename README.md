@@ -8,7 +8,7 @@ Multi-chain scanner (EVM + BTC + SOL + SUI)
 node main.js --count=10
 ```
 
-`node main.js` automatically creates new wallets, updates scanner input files in `data/`, clears old scan output, and starts the checker dashboard.
+`node main.js` automatically creates new wallets, updates scanner input files in `data/`, clears old scan output, and starts the checker dashboard. Only wallets with a detected balance are saved to `output/active.txt`.
 
 ## Generate Wallets Only
 

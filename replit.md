@@ -10,7 +10,7 @@ This is a JavaScript console application for generating wallet addresses and che
 - `core/` contains the JavaScript scan engine and RPC rotation logic.
 - `data/` is expected to contain wallet input files.
 - `rpcs/` is expected to contain RPC endpoint files.
-- `output/` receives active and inactive wallet results.
+- `output/active.txt` stores only wallets with detected balance using `CHAIN,address` rows; empty wallets are not saved.
 - `wallets/` stores generated wallet private key/secret data and must be kept private.
 
 ## Runtime
@@ -24,3 +24,4 @@ This is a JavaScript console application for generating wallet addresses and che
 - Python source files from the import were removed; the active runtime is JavaScript.
 - Run `node main.js --count=10` to generate wallets and immediately start checking them.
 - Run `node generateWallets.js --count=10` to only create wallets and refresh scanner input files.
+- Empty wallets are counted in the dashboard as inactive but are intentionally not written to output files.
