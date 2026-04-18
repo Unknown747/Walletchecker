@@ -22,17 +22,22 @@ function printEngineStatus(status) {
   );
 }
 
-async function dashboard(engines) {
+async function dashboard(engines, state) {
   while (true) {
     process.stdout.write("\x1Bc");
+
     const activeTotal = engines.reduce((total, engine) => total + engine.active, 0);
     const inactiveTotal = engines.reduce((total, engine) => total + engine.inactive, 0);
     const processedTotal = engines.reduce((total, engine) => total + engine.processed, 0);
     const retriesTotal = engines.reduce((total, engine) => total + engine.retries, 0);
 
-    console.log("Wallet Checker");
-    console.log("==============");
-    console.log(`Checked: ${processedTotal} | Active: ${activeTotal} | Inactive: ${inactiveTotal} | Retries: ${retriesTotal}`);
+    const lifetimeActive = state.lifetimeActive + activeTotal;
+    const lifetimeProcessed = state.lifetimeProcessed + processedTotal;
+
+    console.log("Wallet Checker [Continuous Mode]");
+    console.log("=================================");
+    console.log(`Round: ${state.round} | Lifetime Checked: ${lifetimeProcessed} | Lifetime Active: ${lifetimeActive}`);
+    console.log(`This Round  — Checked: ${processedTotal} | Active: ${activeTotal} | Inactive: ${inactiveTotal} | Retries: ${retriesTotal}`);
     console.log("");
     console.log("Chain     checked active inactive rpc");
     console.log("-------------------------------------");
@@ -50,16 +55,14 @@ async function dashboard(engines) {
     }
 
     console.log("-------------------------------------");
-    console.log("Private key tersimpan di folder wallets/.");
+    console.log(`Private keys saved in wallets/  |  Status: ${state.scanning ? "Scanning..." : "Generating..."}`);
+
     await sleep(2000);
   }
 }
 
 async function main() {
   const count = parseCount();
-  const generated = await generateWallets({ count });
-  console.log(`Mulai checker dengan ${generated.count} wallet baru per chain.`);
-  await sleep(1000);
 
   const engines = [
     new Engine(EVMChecker, "rpcs/eth.txt", "data/evm_input.txt", "output/active.txt", "output/inactive_evm.txt", "ETH"),
@@ -74,10 +77,34 @@ async function main() {
     new Engine(SUIChecker, "rpcs/sui.txt", "data/sui_input.txt", "output/active.txt", "output/inactive_sui.txt", "SUI")
   ];
 
-  await Promise.all([
-    ...engines.map((engine) => engine.run()),
-    dashboard(engines)
-  ]);
+  const state = {
+    round: 0,
+    scanning: false,
+    lifetimeActive: 0,
+    lifetimeInactive: 0,
+    lifetimeProcessed: 0
+  };
+
+  dashboard(engines, state);
+
+  while (true) {
+    state.round += 1;
+    state.scanning = false;
+
+    await generateWallets({ count, silent: true });
+
+    for (const engine of engines) {
+      engine.reset();
+    }
+
+    state.scanning = true;
+
+    await Promise.all(engines.map((engine) => engine.run()));
+
+    state.lifetimeActive += engines.reduce((total, engine) => total + engine.active, 0);
+    state.lifetimeInactive += engines.reduce((total, engine) => total + engine.inactive, 0);
+    state.lifetimeProcessed += engines.reduce((total, engine) => total + engine.processed, 0);
+  }
 }
 
 main().catch((error) => {

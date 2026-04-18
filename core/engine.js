@@ -100,6 +100,14 @@ class Engine {
     }
   }
 
+  reset() {
+    this.addresses = this.loadAddresses();
+    this.processed = 0;
+    this.active = 0;
+    this.inactive = 0;
+    this.retries = 0;
+  }
+
   status() {
     return {
       chain: this.chain,
