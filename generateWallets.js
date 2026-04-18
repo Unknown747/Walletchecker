@@ -12,13 +12,13 @@ function getBs58Encoder(bs58Module) {
   return bs58Module.default || bs58Module;
 }
 
-function parseCount() {
-  const countArg = process.argv.find((arg) => arg.startsWith("--count="));
-  const rawCount = countArg ? countArg.split("=")[1] : process.argv[2];
+function parseCount(args = process.argv.slice(2)) {
+  const countArg = args.find((arg) => arg.startsWith("--count="));
+  const rawCount = countArg ? countArg.split("=")[1] : args.find((arg) => /^\d+$/.test(arg));
   const count = Number.parseInt(rawCount || "10", 10);
 
   if (!Number.isInteger(count) || count <= 0) {
-    throw new Error("Jumlah wallet harus angka lebih dari 0. Contoh: node generateWallets.js --count=10");
+    throw new Error("Jumlah wallet harus angka lebih dari 0. Contoh: node main.js --count=10");
   }
 
   return count;
@@ -99,8 +99,8 @@ async function generateSuiWallet() {
   };
 }
 
-async function main() {
-  const count = parseCount();
+async function generateWallets(options = {}) {
+  const count = options.count || parseCount(options.args);
   const bs58 = getBs58Encoder(await import("bs58"));
 
   ensureDirectories();
@@ -141,12 +141,25 @@ async function main() {
   fs.writeFileSync(keyFile, JSON.stringify(payload, null, 2));
   fs.writeFileSync(latestKeyFile, JSON.stringify(payload, null, 2));
 
-  console.log(`Generated ${count} wallet untuk EVM, BTC, SOL, dan SUI.`);
-  console.log("Address scanner diperbarui di folder data/.");
-  console.log(`Private key/secret tersimpan di ${keyFile}`);
+  if (!options.silent) {
+    console.log(`Generated ${count} wallet untuk EVM, BTC, SOL, dan SUI.`);
+    console.log("Address scanner diperbarui di folder data/.");
+    console.log(`Private key/secret tersimpan di ${keyFile}`);
+  }
+
+  return {
+    count,
+    keyFile,
+    latestKeyFile,
+    generatedAt
+  };
 }
 
-main().catch((error) => {
-  console.error(error.message || error);
-  process.exit(1);
-});
+if (require.main === module) {
+  generateWallets().catch((error) => {
+    console.error(error.message || error);
+    process.exit(1);
+  });
+}
+
+module.exports = { generateWallets, parseCount };

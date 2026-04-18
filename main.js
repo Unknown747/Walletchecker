@@ -3,6 +3,7 @@ const { EVMChecker } = require("./checkers/evmChecker");
 const { BTCChecker } = require("./checkers/btcChecker");
 const { SolChecker } = require("./checkers/solChecker");
 const { SUIChecker } = require("./checkers/suiChecker");
+const { generateWallets, parseCount } = require("./generateWallets");
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -48,6 +49,11 @@ async function dashboard(engines) {
 }
 
 async function main() {
+  const count = parseCount();
+  const generated = await generateWallets({ count });
+  console.log(`Mulai checker dengan ${generated.count} wallet baru per chain.`);
+  await sleep(1000);
+
   const engines = [
     new Engine(EVMChecker, "rpcs/eth.txt", "data/evm_input.txt", "output/active.txt", "output/inactive_evm.txt", "ETH"),
     new Engine(EVMChecker, "rpcs/bsc.txt", "data/evm_input.txt", "output/active.txt", "output/inactive_evm.txt", "BSC"),

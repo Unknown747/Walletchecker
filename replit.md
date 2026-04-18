@@ -4,8 +4,8 @@
 This is a JavaScript console application for generating wallet addresses and checking wallet activity across EVM, BTC, SOL, and SUI chains.
 
 ## Project Structure
-- `main.js` starts the scanner and live console dashboard.
-- `generateWallets.js` generates new EVM, BTC, SOL, and SUI wallets.
+- `main.js` generates new wallets, updates scanner input files, clears old output, then starts the scanner dashboard.
+- `generateWallets.js` can also be run directly to generate new EVM, BTC, SOL, and SUI wallets without starting the scanner.
 - `checkers/` contains chain-specific JavaScript balance/activity checkers.
 - `core/` contains the JavaScript scan engine and RPC rotation logic.
 - `data/` is expected to contain wallet input files.
@@ -22,4 +22,5 @@ This is a JavaScript console application for generating wallet addresses and che
 - The imported project is a console tool, not a web frontend.
 - Missing input or RPC files are handled as empty lists so the dashboard can still run.
 - Python source files from the import were removed; the active runtime is JavaScript.
-- Run `node generateWallets.js --count=10` to create wallets and refresh scanner input files.
+- Run `node main.js --count=10` to generate wallets and immediately start checking them.
+- Run `node generateWallets.js --count=10` to only create wallets and refresh scanner input files.
