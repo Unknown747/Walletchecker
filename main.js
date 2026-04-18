@@ -10,23 +10,32 @@ function sleep(ms) {
 }
 
 function printEngineStatus(status) {
-  console.log(
-    `${status.chain.toUpperCase()} | ` +
-    `Processed: ${status.processed} | ` +
-    `Active: ${status.active} | ` +
-    `Inactive: ${status.inactive} | ` +
-    `Retries: ${status.retries}`
-  );
+  const rpcRetrying = status.rpcStatus.filter((rpc) => rpc.state !== "available").length;
+  const rpcTotal = status.rpcStatus.length;
 
-  for (const rpc of status.rpcStatus) {
-    console.log(`   RPC: ${rpc.url} -> ${rpc.state}`);
-  }
+  console.log(
+    `${status.chain.padEnd(9)} ` +
+    `checked=${String(status.processed).padStart(4)} ` +
+    `active=${String(status.active).padStart(4)} ` +
+    `inactive=${String(status.inactive).padStart(4)} ` +
+    `rpc=${rpcTotal - rpcRetrying}/${rpcTotal}`
+  );
 }
 
 async function dashboard(engines) {
   while (true) {
     process.stdout.write("\x1Bc");
-    console.log("===== EVM Chains =====");
+    const activeTotal = engines.reduce((total, engine) => total + engine.active, 0);
+    const inactiveTotal = engines.reduce((total, engine) => total + engine.inactive, 0);
+    const processedTotal = engines.reduce((total, engine) => total + engine.processed, 0);
+    const retriesTotal = engines.reduce((total, engine) => total + engine.retries, 0);
+
+    console.log("Wallet Checker");
+    console.log("==============");
+    console.log(`Checked: ${processedTotal} | Active: ${activeTotal} | Inactive: ${inactiveTotal} | Retries: ${retriesTotal}`);
+    console.log("");
+    console.log("Chain     checked active inactive rpc");
+    console.log("-------------------------------------");
 
     for (const engine of engines) {
       if (["eth", "bsc", "pol", "base", "arbitrum", "avalanche", "gnosis"].includes(engine.chain.toLowerCase())) {
@@ -34,16 +43,14 @@ async function dashboard(engines) {
       }
     }
 
-    console.log("\n=== Other Chains ===");
     for (const engine of engines) {
       if (["btc", "sol", "sui"].includes(engine.chain.toLowerCase())) {
         printEngineStatus(engine.status());
       }
     }
 
-    const activeTotal = engines.reduce((total, engine) => total + engine.active, 0);
-    const inactiveTotal = engines.reduce((total, engine) => total + engine.inactive, 0);
-    console.log(`\n=== TOTAL ===\nACTIVE ADDYS: ${activeTotal}\nINACTIVE ADDYS: ${inactiveTotal}`);
+    console.log("-------------------------------------");
+    console.log("Private key tersimpan di folder wallets/.");
     await sleep(2000);
   }
 }
