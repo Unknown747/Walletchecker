@@ -1,3 +1,6 @@
+const fs = require("fs");
+
+const config = require("./core/config");
 const { Engine } = require("./core/engine");
 const { EVMChecker } = require("./checkers/evmChecker");
 const { BTCChecker } = require("./checkers/btcChecker");
@@ -5,282 +8,259 @@ const { SolChecker } = require("./checkers/solChecker");
 const { SUIChecker } = require("./checkers/suiChecker");
 const { generateWallets, parseCount } = require("./generateWallets");
 
-// ── ANSI helpers ─────────────────────────────────────────────────────────────
+// ── Chain registry ────────────────────────────────────────────────────────────
+const ALL_CHAINS = [
+  { id: "eth",       type: "evm", label: "ETH",       rpcFile: "rpcs/eth.txt",       inputFile: "data/evm_input.txt" },
+  { id: "bsc",       type: "evm", label: "BSC",       rpcFile: "rpcs/bsc.txt",       inputFile: "data/evm_input.txt" },
+  { id: "pol",       type: "evm", label: "POL",       rpcFile: "rpcs/polygon.txt",   inputFile: "data/evm_input.txt" },
+  { id: "base",      type: "evm", label: "BASE",      rpcFile: "rpcs/base.txt",      inputFile: "data/evm_input.txt" },
+  { id: "arbitrum",  type: "evm", label: "ARBITRUM",  rpcFile: "rpcs/arbitrum.txt",  inputFile: "data/evm_input.txt" },
+  { id: "avalanche", type: "evm", label: "AVALANCHE", rpcFile: "rpcs/avalanche.txt", inputFile: "data/evm_input.txt" },
+  { id: "gnosis",    type: "evm", label: "GNOSIS",    rpcFile: "rpcs/gnosis.txt",    inputFile: "data/evm_input.txt" },
+  { id: "optimism",  type: "evm", label: "OPTIMISM",  rpcFile: "rpcs/optimism.txt",  inputFile: "data/evm_input.txt" },
+  { id: "fantom",    type: "evm", label: "FANTOM",    rpcFile: "rpcs/fantom.txt",    inputFile: "data/evm_input.txt" },
+  { id: "zksync",    type: "evm", label: "ZKSYNC",    rpcFile: "rpcs/zksync.txt",    inputFile: "data/evm_input.txt" },
+  { id: "btc",       type: "btc", label: "BTC",       rpcFile: "rpcs/btc.txt",       inputFile: "data/btc_input.txt" },
+  { id: "sol",       type: "sol", label: "SOL",       rpcFile: "rpcs/sol.txt",       inputFile: "data/sol_input.txt" },
+  { id: "sui",       type: "sui", label: "SUI",       rpcFile: "rpcs/sui.txt",       inputFile: "data/sui_input.txt" }
+];
+
+const CHECKERS = { evm: EVMChecker, btc: BTCChecker, sol: SolChecker, sui: SUIChecker };
+const ACTIVE_FILE = "output/active.txt";
+
+// ── Stats persistence ────────────────────────────────────────────────────────
+function loadStats() {
+  try {
+    return JSON.parse(fs.readFileSync(config.statsFile, "utf8"));
+  } catch {
+    return { lifetimeChecked: 0, lifetimeActive: 0, lifetimeRounds: 0 };
+  }
+}
+
+function saveStats(state) {
+  fs.mkdirSync("output", { recursive: true });
+  fs.writeFileSync(config.statsFile, JSON.stringify({
+    lifetimeChecked: state.lifetimeProcessed,
+    lifetimeActive:  state.lifetimeActive,
+    lifetimeRounds:  state.round,
+    lastRun:         new Date().toISOString()
+  }, null, 2));
+}
+
+// ── Wallet maps ───────────────────────────────────────────────────────────────
+function buildMaps(wallets) {
+  const maps = { evm: new Map(), btc: new Map(), sol: new Map(), sui: new Map() };
+
+  for (const w of wallets) {
+    const keyData = {
+      mnemonic:         w.mnemonic,
+      evm:              w.evm,
+      btc:              w.btc,
+      sol:              w.sol,
+      sui:              w.sui,
+      evmPrivateKey:    w.evmPrivateKey,
+      btcPrivateKeyWif: w.btcPrivateKeyWif,
+      solSecretKey:     w.solSecretKey,
+      suiSecretKey:     w.suiSecretKey
+    };
+    maps.evm.set(w.evm, keyData);
+    maps.btc.set(w.btc, keyData);
+    maps.sol.set(w.sol, keyData);
+    maps.sui.set(w.sui, keyData);
+  }
+
+  return maps;
+}
+
+// ── ANSI / display helpers ───────────────────────────────────────────────────
 const C = {
-  reset:  "\x1b[0m",
-  bold:   "\x1b[1m",
-  dim:    "\x1b[2m",
-  cyan:   "\x1b[36m",
-  green:  "\x1b[32m",
-  yellow: "\x1b[33m",
-  red:    "\x1b[31m",
-  white:  "\x1b[37m",
-  gray:   "\x1b[90m",
-  bgGreen: "\x1b[42m",
-  bCyan:  "\x1b[1m\x1b[36m",
-  bGreen: "\x1b[1m\x1b[32m",
-  bYellow:"\x1b[1m\x1b[33m",
-  bWhite: "\x1b[1m\x1b[37m",
+  reset:   "\x1b[0m",
+  bold:    "\x1b[1m",
+  dim:     "\x1b[2m",
+  cyan:    "\x1b[36m",
+  green:   "\x1b[32m",
+  yellow:  "\x1b[33m",
+  red:     "\x1b[31m",
+  white:   "\x1b[37m",
+  gray:    "\x1b[90m",
+  bCyan:   "\x1b[1m\x1b[36m",
+  bGreen:  "\x1b[1m\x1b[32m",
+  bYellow: "\x1b[1m\x1b[33m",
+  bWhite:  "\x1b[1m\x1b[37m"
 };
 
-const W = 66; // total display width (inside borders)
+const W = 68;
 
 function c(color, text) { return `${color}${text}${C.reset}`; }
-function pad(text, len, right = false) {
-  const str = String(text);
-  return right ? str.padStart(len) : str.padEnd(len);
-}
 
-function line(content = "") {
-  return `${C.gray}│${C.reset} ${content} ${C.gray}│${C.reset}`;
-}
-function divider(left = "├", mid = "─", right = "┤") {
-  return `${C.gray}${left}${mid.repeat(W)}${right}${C.reset}`;
-}
-function top()    { return divider("╔", "═", "╗"); }
-function bottom() { return divider("╚", "═", "╝"); }
-function row(left, right, split = "╪") {
-  return divider("╠", "═", "╣");
-}
-
-function header(title) {
-  const inner = c(C.bCyan, title);
-  const visLen = title.length;
-  const pad1 = Math.floor((W - visLen) / 2) - 1;
-  const pad2 = W - visLen - pad1 - 2;
-  return `${C.gray}║${C.reset}${" ".repeat(pad1 < 0 ? 0 : pad1)} ${inner} ${" ".repeat(pad2 < 0 ? 0 : pad2)}${C.gray}║${C.reset}`;
-}
-
-function row2(label, val1, label2, val2) {
-  const left  = `${c(C.gray, label.padEnd(10))}${val1}`;
-  const right = `${c(C.gray, label2.padEnd(10))}${val2}`;
-  const leftVis  = label.length + 10 + stripAnsi(val1).length;
-  const rightVis = label2.length + 10 + stripAnsi(val2).length;
-  const gap = W - leftVis - rightVis - 2;
-  return line(`${left}${" ".repeat(Math.max(gap, 2))}${right}`);
-}
-
-function stripAnsi(str) {
-  return String(str).replace(/\x1b\[[0-9;]*m/g, "");
-}
+function stripAnsi(s) { return String(s).replace(/\x1b\[[0-9;]*m/g, ""); }
 
 function fillLine(content) {
   const vis = stripAnsi(content);
   const pad = W - vis.length - 2;
-  return line(`${content}${" ".repeat(Math.max(pad, 0))}`);
+  return `${C.gray}│${C.reset} ${content}${" ".repeat(Math.max(pad, 0))} ${C.gray}│${C.reset}`;
 }
 
-function progressBar(done, total, width = 36) {
-  const pct  = total > 0 ? Math.min(done / total, 1) : 0;
-  const fill = Math.round(pct * width);
-  const empty = width - fill;
-  const bar = c(C.green, "█".repeat(fill)) + c(C.gray, "░".repeat(empty));
-  const pctStr = c(C.bWhite, `${Math.round(pct * 100)}%`);
-  return `${bar} ${pctStr}`;
+function divider(l = "├", m = "─", r = "┤") {
+  return `${C.gray}${l}${m.repeat(W)}${r}${C.reset}`;
+}
+
+function centerHeader(title) {
+  const pl = Math.floor((W - title.length) / 2) - 1;
+  const pr = W - title.length - pl - 2;
+  return `${C.gray}║${C.reset}${" ".repeat(pl)} ${c(C.bCyan, title)} ${" ".repeat(pr)}${C.gray}║${C.reset}`;
 }
 
 function elapsed(ms) {
   const s = Math.floor(ms / 1000);
   const h = Math.floor(s / 3600);
   const m = Math.floor((s % 3600) / 60);
-  const sec = s % 60;
-  return [h, m, sec].map((v) => String(v).padStart(2, "0")).join(":");
+  return [h, m, s % 60].map((v) => String(v).padStart(2, "0")).join(":");
 }
 
-function rpcBar(available, total) {
-  const pct = total > 0 ? available / total : 0;
-  const color = pct === 1 ? C.green : pct >= 0.5 ? C.yellow : C.red;
-  return `${c(color, `${available}/${total}`)}`;
+function progressBar(done, total, width = 34) {
+  const pct  = total > 0 ? Math.min(done / total, 1) : 0;
+  const fill = Math.round(pct * width);
+  return `${c(C.green, "█".repeat(fill))}${c(C.gray, "░".repeat(width - fill))} ${c(C.bWhite, `${Math.round(pct * 100)}%`)}`;
 }
 
-function tableRow(chain, checked, active, inactive, rpcAvail, rpcTotal) {
-  const chainStr   = c(active > 0 ? C.bGreen : C.white, pad(chain, 9));
-  const checkedStr = c(C.white,  pad(checked,  7, true));
-  const activeStr  = c(active > 0 ? C.bGreen : C.gray, pad(active, 7, true));
-  const inactStr   = c(C.dim,    pad(inactive, 9, true));
-  const rpcStr     = rpcBar(rpcAvail, rpcTotal);
-  const rpcVis     = `${rpcAvail}/${rpcTotal}`;
-
-  const content = `${chainStr} ${checkedStr} ${activeStr} ${inactStr}  ${rpcStr}`;
-  const vis = 9 + 1 + 7 + 1 + 7 + 1 + 9 + 2 + rpcVis.length;
-  const pad2 = W - vis - 2;
-  return line(`${content}${" ".repeat(Math.max(pad2, 0))}`);
+function rpcColor(avail, total) {
+  if (total === 0) return c(C.gray, "0/0");
+  const ratio = avail / total;
+  const color = ratio === 1 ? C.green : ratio >= 0.5 ? C.yellow : C.red;
+  return c(color, `${avail}/${total}`);
 }
 
-// ── Utils ────────────────────────────────────────────────────────────────────
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function tableRow(chain, checked, active, inactive, retries, rpcAvail, rpcTotal) {
+  const chainStr = c(active > 0 ? C.bGreen : C.white, chain.padEnd(10));
+  const chkStr   = c(C.white,                          String(checked).padStart(7));
+  const actStr   = c(active > 0 ? C.bGreen : C.gray,  String(active).padStart(7));
+  const inStr    = c(C.dim,                            String(inactive).padStart(9));
+  const retStr   = c(retries > 0 ? C.yellow : C.gray, String(retries).padStart(7));
+  const rpcStr   = rpcColor(rpcAvail, rpcTotal);
+
+  const content  = `${chainStr} ${chkStr} ${actStr} ${inStr} ${retStr}  ${rpcStr}`;
+  const vis      = 10 + 1 + 7 + 1 + 7 + 1 + 9 + 1 + 7 + 2 + stripAnsi(rpcStr).length;
+  return fillLine(`${content}${" ".repeat(Math.max(W - 2 - vis, 0))}`);
 }
 
-function buildMaps(wallets) {
-  const evmMap = new Map();
-  const btcMap = new Map();
-  const solMap = new Map();
-  const suiMap = new Map();
-
-  for (const w of wallets) {
-    const keyData = {
-      mnemonic:       w.mnemonic,
-      evm:            w.evm,
-      btc:            w.btc,
-      sol:            w.sol,
-      sui:            w.sui,
-      evmPrivateKey:  w.evmPrivateKey,
-      btcPrivateKeyWif: w.btcPrivateKeyWif,
-      solSecretKey:   w.solSecretKey,
-      suiSecretKey:   w.suiSecretKey
-    };
-    evmMap.set(w.evm, keyData);
-    btcMap.set(w.btc, keyData);
-    solMap.set(w.sol, keyData);
-    suiMap.set(w.sui, keyData);
-  }
-
-  return { evmMap, btcMap, solMap, suiMap };
-}
-
-// ── Dashboard ────────────────────────────────────────────────────────────────
+// ── Dashboard ─────────────────────────────────────────────────────────────────
 async function dashboard(engines, state) {
-  const EVM_CHAINS   = ["eth", "bsc", "pol", "base", "arbitrum", "avalanche", "gnosis"];
-  const OTHER_CHAINS = ["btc", "sol", "sui"];
+  function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+  const evmEngines   = engines.filter((e) => !["BTC", "SOL", "SUI"].includes(e.chain));
+  const otherEngines = engines.filter((e) =>  ["BTC", "SOL", "SUI"].includes(e.chain));
 
   while (true) {
-    process.stdout.write("\x1Bc");
-
     const roundChecked  = engines.reduce((t, e) => t + e.processed, 0);
     const roundActive   = engines.reduce((t, e) => t + e.active,    0);
     const roundInactive = engines.reduce((t, e) => t + e.inactive,  0);
     const roundRetries  = engines.reduce((t, e) => t + e.retries,   0);
 
     const lifeChecked = state.lifetimeProcessed + roundChecked;
-    const lifeActive  = state.lifetimeActive + roundActive;
+    const lifeActive  = state.lifetimeActive    + roundActive;
 
-    const now      = Date.now();
-    const totalMs  = now - state.totalStartTime;
-    const roundMs  = now - state.roundStartTime;
-    const speed    = totalMs > 0 ? ((lifeChecked / (totalMs / 1000)) / engines.length).toFixed(1) : "0.0";
-    const dateStr  = new Date().toTimeString().slice(0, 8);
+    const now     = Date.now();
+    const uptime  = elapsed(now - state.totalStartTime);
+    const roundEl = elapsed(now - state.roundStartTime);
+    const speed   = now - state.totalStartTime > 500
+      ? (lifeChecked / ((now - state.totalStartTime) / 1000) / engines.length).toFixed(1)
+      : "0.0";
 
-    const statusLabel = state.scanning
-      ? c(C.bGreen,  "▶ SCANNING")
+    const totalPerRound = state.count * engines.length;
+    const statusLabel   = state.scanning
+      ? c(C.bGreen,  "▶ SCANNING  ")
       : c(C.bYellow, "⟳ GENERATING");
 
-    // Progress: total addresses per round = count * chains (EVM=1 set, BTC, SOL, SUI)
-    const totalPerRound = state.count * engines.length;
-    const progress = progressBar(roundChecked, totalPerRound);
+    const out = [
+      divider("╔", "═", "╗"),
+      centerHeader("MULTI-CHAIN WALLET SCANNER"),
+      divider("╠", "═", "╣"),
 
-    const lines = [];
+      fillLine(
+        `${c(C.gray, "Round  ")}${c(C.bWhite, `#${state.round}`)}` +
+        `   ${c(C.gray, "Status ")}${statusLabel}` +
+        `   ${c(C.gray, new Date().toTimeString().slice(0, 8))}`
+      ),
+      fillLine(
+        `${c(C.gray, "Uptime ")}${c(C.white, uptime)}` +
+        `   ${c(C.gray, "Round  ")}${c(C.white, roundEl)}` +
+        `   ${c(C.gray, "Speed  ")}${c(C.yellow, `${speed} w/s/chain`)}`
+      ),
 
-    lines.push(top());
-    lines.push(header("MULTI-CHAIN WALLET SCANNER"));
-    lines.push(divider("╠", "═", "╣"));
+      divider("╠", "═", "╣"),
 
-    // Round / status row
-    {
-      const left  = `${c(C.gray, "Round  ")} ${c(C.bWhite, `#${state.round}`)}`;
-      const mid   = `${c(C.gray, "Status ")} ${statusLabel}`;
-      const right = `${c(C.gray, dateStr)}`;
-      const vis   = 7 + 1 + String(state.round + 1).length + 2 + 7 + 1 + (state.scanning ? 10 : 12) + 2 + 8;
-      const gap1  = Math.floor((W - 2 - stripAnsi(left).length - stripAnsi(mid).length - stripAnsi(right).length) / 2);
-      lines.push(line(`${left}${" ".repeat(Math.max(gap1, 2))}${mid}${" ".repeat(Math.max(gap1, 2))}${right}`));
-    }
+      fillLine(
+        `${c(C.gray, "Round   ")} ${c(C.bWhite, roundChecked)} checked` +
+        `  ${roundActive > 0 ? c(C.bGreen, `${roundActive} ACTIVE`) : c(C.gray, "0 active")}` +
+        `  ${c(C.dim, `${roundInactive} inactive`)}` +
+        `${roundRetries > 0 ? `  ${c(C.yellow, `${roundRetries} retried`)}` : ""}`
+      ),
+      fillLine(
+        `${c(C.gray, "Lifetime")} ${c(C.bWhite, lifeChecked)} checked` +
+        `  ${lifeActive > 0 ? c(C.bGreen, `${lifeActive} ACTIVE FOUND`) : c(C.gray, "0 active found")}` +
+        `  ${c(C.gray, `${state.round} rounds`)}`
+      ),
+      fillLine(`${c(C.gray, "Progress ")}${progressBar(roundChecked, totalPerRound)}`),
 
-    // Time / speed row
-    {
-      const left  = `${c(C.gray, "Uptime ")} ${c(C.white, elapsed(totalMs))}`;
-      const right = `${c(C.gray, "Round  ")} ${c(C.white, elapsed(roundMs))}   ${c(C.gray, "Speed ")} ${c(C.yellow, `${speed} w/s/chain`)}`;
-      const gap   = W - 2 - stripAnsi(left).length - stripAnsi(right).length;
-      lines.push(line(`${left}${" ".repeat(Math.max(gap, 2))}${right}`));
-    }
+      divider("╠", "═", "╣"),
+      fillLine(
+        `${c(C.bCyan, "Chain".padEnd(10))} ` +
+        `${c(C.bCyan, "Checked".padStart(7))} ` +
+        `${c(C.bCyan, "Active".padStart(7))} ` +
+        `${c(C.bCyan, "Inactive".padStart(9))} ` +
+        `${c(C.bCyan, "Retried".padStart(7))}  ` +
+        `${c(C.bCyan, "RPC")}`
+      ),
+      divider("╠", "═", "╣"),
 
-    lines.push(divider("╠", "═", "╣"));
+      ...evmEngines.map((e) => {
+        const s = e.status();
+        const avail = s.rpcStatus.filter((r) => r.state === "available").length;
+        return tableRow(s.chain, s.processed, s.active, s.inactive, s.retries, avail, s.rpcStatus.length);
+      }),
 
-    // Stats
-    {
-      const rl = `${c(C.gray, "Round  ")} ${c(C.bWhite, roundChecked)} checked  ${roundActive > 0 ? c(C.bGreen, `${roundActive} ACTIVE`) : c(C.gray, "0 active")}  ${c(C.dim, `${roundInactive} inactive`)}  ${roundRetries > 0 ? c(C.yellow, `${roundRetries} retries`) : ""}`;
-      lines.push(fillLine(rl));
-    }
-    {
-      const ll = `${c(C.gray, "Lifetime")} ${c(C.bWhite, lifeChecked)} checked  ${lifeActive > 0 ? c(C.bGreen, `${lifeActive} ACTIVE FOUND`) : c(C.gray, "0 active found")}`;
-      lines.push(fillLine(ll));
-    }
+      divider("╠", "─", "╣"),
 
-    // Progress bar
-    {
-      const pg = `${c(C.gray, "Progress ")}${progress}`;
-      lines.push(fillLine(pg));
-    }
+      ...otherEngines.map((e) => {
+        const s = e.status();
+        const avail = s.rpcStatus.filter((r) => r.state === "available").length;
+        return tableRow(s.chain, s.processed, s.active, s.inactive, s.retries, avail, s.rpcStatus.length);
+      }),
 
-    lines.push(divider("╠", "═", "╣"));
+      divider("╠", "═", "╣"),
+      fillLine(`${c(C.gray, "1 seed → EVM + BTC + SOL + SUI")}   ${c(C.dim, "hits → output/active_keys.txt")}`),
+      divider("╚", "═", "╝")
+    ];
 
-    // Table header
-    {
-      const h = `${c(C.bCyan, pad("Chain", 9))} ${c(C.bCyan, pad("Checked", 7, true))} ${c(C.bCyan, pad("Active", 7, true))} ${c(C.bCyan, pad("Inactive", 9, true))}  ${c(C.bCyan, "RPC")}`;
-      lines.push(fillLine(h));
-    }
-    lines.push(divider("╠", "═", "╣"));
-
-    // EVM rows
-    for (const engine of engines) {
-      if (!EVM_CHAINS.includes(engine.chain.toLowerCase())) continue;
-      const s = engine.status();
-      const avail = s.rpcStatus.filter((r) => r.state === "available").length;
-      lines.push(tableRow(s.chain, s.processed, s.active, s.inactive, avail, s.rpcStatus.length));
-    }
-
-    lines.push(divider("╠", "─", "╣"));
-
-    // Other chain rows
-    for (const engine of engines) {
-      if (!OTHER_CHAINS.includes(engine.chain.toLowerCase())) continue;
-      const s = engine.status();
-      const avail = s.rpcStatus.filter((r) => r.state === "available").length;
-      lines.push(tableRow(s.chain, s.processed, s.active, s.inactive, avail, s.rpcStatus.length));
-    }
-
-    lines.push(divider("╠", "═", "╣"));
-
-    // Footer
-    {
-      const f = `${c(C.gray, "1 seed → EVM + BTC + SOL + SUI")}   ${c(C.dim, "hits → output/active_keys.txt")}`;
-      lines.push(fillLine(f));
-    }
-
-    lines.push(bottom());
-
-    console.log(lines.join("\n"));
+    process.stdout.write("\x1Bc");
+    console.log(out.join("\n"));
 
     await sleep(2000);
   }
 }
 
-// ── Main ─────────────────────────────────────────────────────────────────────
+// ── Main ──────────────────────────────────────────────────────────────────────
 async function main() {
   const count = parseCount();
+  const saved = loadStats();
 
   const state = {
-    round: 0,
+    round:            saved.lifetimeRounds  || 0,
     count,
-    scanning: false,
-    lifetimeActive: 0,
+    scanning:         false,
+    lifetimeActive:   saved.lifetimeActive  || 0,
     lifetimeInactive: 0,
-    lifetimeProcessed: 0,
-    totalStartTime: Date.now(),
-    roundStartTime: Date.now()
+    lifetimeProcessed: saved.lifetimeChecked || 0,
+    totalStartTime:   Date.now(),
+    roundStartTime:   Date.now()
   };
 
-  const engines = [
-    new Engine(EVMChecker, "rpcs/eth.txt",       "data/evm_input.txt", "output/active.txt", "ETH"),
-    new Engine(EVMChecker, "rpcs/bsc.txt",       "data/evm_input.txt", "output/active.txt", "BSC"),
-    new Engine(EVMChecker, "rpcs/polygon.txt",   "data/evm_input.txt", "output/active.txt", "POL"),
-    new Engine(EVMChecker, "rpcs/base.txt",      "data/evm_input.txt", "output/active.txt", "BASE"),
-    new Engine(EVMChecker, "rpcs/arbitrum.txt",  "data/evm_input.txt", "output/active.txt", "ARBITRUM"),
-    new Engine(EVMChecker, "rpcs/avalanche.txt", "data/evm_input.txt", "output/active.txt", "AVALANCHE"),
-    new Engine(EVMChecker, "rpcs/gnosis.txt",    "data/evm_input.txt", "output/active.txt", "GNOSIS"),
-    new Engine(BTCChecker, "rpcs/btc.txt",       "data/btc_input.txt", "output/active.txt", "BTC"),
-    new Engine(SolChecker, "rpcs/sol.txt",       "data/sol_input.txt", "output/active.txt", "SOL"),
-    new Engine(SUIChecker, "rpcs/sui.txt",       "data/sui_input.txt", "output/active.txt", "SUI")
-  ];
+  const activeChains = ALL_CHAINS.filter((ch) => config.chains[ch.id] !== false);
+
+  const engines = activeChains.map(
+    (ch) => new Engine(CHECKERS[ch.type], ch.rpcFile, ch.inputFile, ACTIVE_FILE, ch.label)
+  );
 
   dashboard(engines, state);
 
@@ -290,15 +270,11 @@ async function main() {
     state.roundStartTime = Date.now();
 
     const { wallets } = await generateWallets({ count, silent: true });
-    const { evmMap, btcMap, solMap, suiMap } = buildMaps(wallets);
+    const maps = buildMaps(wallets);
 
-    for (const engine of engines) {
-      const ch = engine.chain.toLowerCase();
-      if (["eth", "bsc", "pol", "base", "arbitrum", "avalanche", "gnosis"].includes(ch)) engine.walletMap = evmMap;
-      else if (ch === "btc") engine.walletMap = btcMap;
-      else if (ch === "sol") engine.walletMap = solMap;
-      else if (ch === "sui") engine.walletMap = suiMap;
-      engine.reset();
+    for (let i = 0; i < engines.length; i += 1) {
+      engines[i].walletMap = maps[activeChains[i].type];
+      engines[i].reset();
     }
 
     state.scanning = true;
@@ -308,10 +284,9 @@ async function main() {
     state.lifetimeActive    += engines.reduce((t, e) => t + e.active,    0);
     state.lifetimeInactive  += engines.reduce((t, e) => t + e.inactive,  0);
     state.lifetimeProcessed += engines.reduce((t, e) => t + e.processed, 0);
+
+    saveStats(state);
   }
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+main().catch((err) => { console.error(err); process.exit(1); });

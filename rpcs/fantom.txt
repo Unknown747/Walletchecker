@@ -1,0 +1,6 @@
+https://rpc.ankr.com/fantom
+https://rpcapi.fantom.network
+https://fantom-mainnet.public.blastapi.io
+https://fantom.drpc.org
+https://fantom.meowrpc.com
+https://1rpc.io/ftm

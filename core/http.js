@@ -1,8 +1,8 @@
-const TIMEOUT_MS = 6000;
+const { httpTimeoutMs } = require("./config");
 
 async function fetchJson(url, options = {}) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const timeout = setTimeout(() => controller.abort(), httpTimeoutMs);
 
   try {
     const response = await fetch(url, { ...options, signal: controller.signal });

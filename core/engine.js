@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { batchSize } = require("./config");
 const { RPCManager } = require("./rpcManager");
 
 class Engine {
@@ -16,6 +17,7 @@ class Engine {
     this.active = 0;
     this.inactive = 0;
     this.retries = 0;
+    this.retryQueue = [];
 
     this.rpcManager = this.buildRpcManager();
     this.checker = new CheckerClass(this.rpcManager);
@@ -26,7 +28,7 @@ class Engine {
       return fs
         .readFileSync(this.inputFile, "utf8")
         .split(/\r?\n/)
-        .map((line) => line.trim())
+        .map((l) => l.trim())
         .filter(Boolean);
     } catch {
       return [];
@@ -44,14 +46,9 @@ class Engine {
         if (!line) continue;
 
         if (line.includes("|")) {
-          const [leftRaw, rightRaw] = line.split("|", 2);
-          const left = leftRaw.trim();
-          const right = rightRaw.trim();
-
+          const [a, b] = line.split("|", 2).map((s) => s.trim());
           entries.push(
-            left.startsWith("http://") || left.startsWith("https://")
-              ? { mode: right, url: left }
-              : { mode: left, url: right }
+            a.startsWith("http") ? { mode: b, url: a } : { mode: a, url: b }
           );
         } else {
           entries.push({ mode: "RPC", url: line });
@@ -80,7 +77,7 @@ class Engine {
     fs.appendFileSync(keysFile, `${record}\n`);
   }
 
-  async worker(address) {
+  async worker(address, isRetry = false) {
     try {
       const result = await this.checker.check(address);
       this.processed += 1;
@@ -94,17 +91,21 @@ class Engine {
         this.inactive += 1;
       }
     } catch {
-      this.retries += 1;
+      if (!isRetry) {
+        this.retryQueue.push(address);
+      } else {
+        this.retries += 1;
+      }
     }
   }
 
-  async run() {
+  async runBatch(addresses, isRetry = false) {
     let tasks = [];
 
-    for (const address of this.addresses) {
-      tasks.push(this.worker(address));
+    for (const address of addresses) {
+      tasks.push(this.worker(address, isRetry));
 
-      if (tasks.length >= 300) {
+      if (tasks.length >= batchSize) {
         await Promise.all(tasks);
         tasks = [];
       }
@@ -115,12 +116,23 @@ class Engine {
     }
   }
 
+  async run() {
+    await this.runBatch(this.addresses);
+
+    if (this.retryQueue.length > 0) {
+      const toRetry = [...this.retryQueue];
+      this.retryQueue = [];
+      await this.runBatch(toRetry, true);
+    }
+  }
+
   reset() {
     this.addresses = this.loadAddresses();
     this.processed = 0;
     this.active = 0;
     this.inactive = 0;
     this.retries = 0;
+    this.retryQueue = [];
   }
 
   status() {
@@ -130,9 +142,10 @@ class Engine {
       active: this.active,
       inactive: this.inactive,
       retries: this.retries,
-      rpcStatus: this.rpcManager.rpcs.map((entry, index) => ({
-        url: entry.url,
-        state: (this.rpcManager.failCount.get(index) || 0) === 0 ? "available" : "retrying"
+      rpcStatus: this.rpcManager.rpcs.map((_, i) => ({
+        state: (this.rpcManager.failCount.get(i) || 0) < require("./config").rpcFailThreshold
+          ? "available"
+          : "blacklisted"
       }))
     };
   }

@@ -1,0 +1,6 @@
+https://mainnet.optimism.io
+https://rpc.ankr.com/optimism
+https://optimism.drpc.org
+https://optimism.meowrpc.com
+https://optimism-mainnet.public.blastapi.io
+https://1rpc.io/op

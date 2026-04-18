@@ -1,0 +1,22 @@
+{
+  "count": 10,
+  "batchSize": 300,
+  "httpTimeoutMs": 6000,
+  "rpcFailThreshold": 5,
+  "statsFile": "output/stats.json",
+  "chains": {
+    "eth":       true,
+    "bsc":       true,
+    "pol":       true,
+    "base":      true,
+    "arbitrum":  true,
+    "avalanche": true,
+    "gnosis":    true,
+    "optimism":  true,
+    "fantom":    true,
+    "zksync":    true,
+    "btc":       true,
+    "sol":       true,
+    "sui":       true
+  }
+}

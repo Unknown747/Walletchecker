@@ -1,3 +1,5 @@
+const { rpcFailThreshold } = require("./config");
+
 class RPCManager {
   constructor(rpcEntries) {
     this.rpcs = rpcEntries;
@@ -10,13 +12,20 @@ class RPCManager {
   }
 
   get() {
-    if (this.rpcs.length === 0) {
-      return null;
+    if (this.rpcs.length === 0) return null;
+
+    const total = this.rpcs.length;
+
+    for (let attempt = 0; attempt < total; attempt += 1) {
+      const idx = this.index % total;
+      this.index += 1;
+
+      if ((this.failCount.get(idx) || 0) < rpcFailThreshold) {
+        return this.rpcs[idx];
+      }
     }
 
-    const entry = this.rpcs[this.index % this.rpcs.length];
-    this.index += 1;
-    return entry;
+    return null;
   }
 
   markFail(entry) {
@@ -31,6 +40,10 @@ class RPCManager {
     if (index >= 0) {
       this.failCount.set(index, 0);
     }
+  }
+
+  availableCount() {
+    return this.rpcs.filter((_, i) => (this.failCount.get(i) || 0) < rpcFailThreshold).length;
   }
 }
 
