@@ -104,7 +104,7 @@ class Engine {
     for (const address of this.addresses) {
       tasks.push(this.worker(address));
 
-      if (tasks.length >= 100) {
+      if (tasks.length >= 300) {
         await Promise.all(tasks);
         tasks = [];
       }

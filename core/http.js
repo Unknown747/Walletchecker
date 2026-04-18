@@ -1,4 +1,4 @@
-const TIMEOUT_MS = 10000;
+const TIMEOUT_MS = 6000;
 
 async function fetchJson(url, options = {}) {
   const controller = new AbortController();
