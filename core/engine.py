@@ -39,10 +39,19 @@ class Engine:
                         continue
 
                     if "|" in line:
-                        mode, url = line.split("|", 1)
+                        left, right = [part.strip() for part in line.split("|", 1)]
+                        if left.startswith(("http://", "https://")):
+                            url, mode = left, right
+                        else:
+                            mode, url = left, right
                         entries.append({
-                            "mode": mode.strip(),
-                            "url": url.strip()
+                            "mode": mode,
+                            "url": url
+                        })
+                    else:
+                        entries.append({
+                            "mode": "RPC",
+                            "url": line
                         })
         except:
             pass
@@ -90,5 +99,12 @@ class Engine:
             "processed": self.processed,
             "active": self.active,
             "inactive": self.inactive,
-            "retries": self.retries
+            "retries": self.retries,
+            "rpc_status": [
+                {
+                    "url": entry["url"],
+                    "state": "available" if self.rpc_manager.fail_count.get(index, 0) == 0 else "retrying"
+                }
+                for index, entry in enumerate(self.rpc_manager.rpcs)
+            ]
         }

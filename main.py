@@ -7,39 +7,34 @@ from checkers.sol_checker import SolChecker
 from checkers.sui_checker import SUIChecker
 from core.engine import Engine
 
+def print_engine_status(status):
+    print(
+        f"{status['chain'].upper()} | "
+        f"Processed: {status['processed']} | "
+        f"Active: {status['active']} | "
+        f"Inactive: {status['inactive']} | "
+        f"Retries: {status['retries']}"
+    )
+    for rpc in status["rpc_status"]:
+        print(f"   RPC: {rpc['url']} -> {rpc['state']}")
+
 async def dashboard(engines):
     while True:
-        os.system('clear')  # Windows use 'cls'
+        os.system('clear')
         print(f"===== EVM Chains =====")
         for e in engines:
-            if e.chain.lower() in ["eth","bsc","polygon","base","arbitrum","avalanche","gnosis"]:
+            if e.chain.lower() in ["eth","bsc","pol","base","arbitrum","avalanche","gnosis"]:
                 s = e.status()
-                print(f"{s['chain'].upper()} | Queue: {print(
-                f"{s['chain']} | "
-                f"Processed: {s['processed']} | "
-                f"Active: {s['active']} | "
-                f"Inactive: {s['inactive']} | "
-                f"Retries: {s['retries']}"
-                )} | Processed: {s['processed']} | Active: {s['active']} | Inactive: {s['inactive']} | Retries: {s['retries']}")
-                for r in s['rpc_status']:
-                    print(f"   RPC: {r['url']} -> {r['state']}")
+                print_engine_status(s)
 
         print(f"\n=== Other Chains ===")
         for e in engines:
             if e.chain.lower() in ["btc","sol","sui"]:
                 s = e.status()
-                print(f"{s['chain'].upper()} | Queue: {print(
-                f"{s['chain']} | "
-                f"Processed: {s['processed']} | "
-                f"Active: {s['active']} | "
-                f"Inactive: {s['inactive']} | "
-                f"Retries: {s['retries']}"
-                )} | Processed: {s['processed']} | Active: {s['active']} | Inactive: {s['inactive']} | Retries: {s['retries']}")
-                for r in s['rpc_status']:
-                    print(f"   RPC: {r['url']} -> {r['state']}")
+                print_engine_status(s)
 
-        active_total = sum(e.active_count for e in engines)
-        inactive_total = sum(e.inactive_count for e in engines)
+        active_total = sum(e.active for e in engines)
+        inactive_total = sum(e.inactive for e in engines)
         print(f"\n=== TOTAL ===\nACTIVE ADDYS: {active_total}\nINACTIVE ADDYS: {inactive_total}")
         await asyncio.sleep(2)
 
